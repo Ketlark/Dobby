@@ -209,7 +209,7 @@ static x86_insn_spec_t x86_opcode_map_one_byte[256] = {
     op0(cld),
     op0(std),
     op1f(modrm_group_4, X86_INSN_FLAG_MODRM_REG_GROUP_4, Eb),
-    op0f(modrm_group_5, X86_INSN_FLAG_MODRM_REG_GROUP_5),
+    op1f(modrm_group_5, X86_INSN_FLAG_MODRM_REG_GROUP_5, Ev),
 };
 
 // clang-format on
