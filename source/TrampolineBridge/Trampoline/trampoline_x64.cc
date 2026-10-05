@@ -31,16 +31,20 @@ Trampoline *GenerateNormalTrampolineBuffer(addr_t from, addr_t to) {
 #undef _
 #define _ turbo_assembler_. // NOLINT: clang-tidy
 
+  CodeGen codegen(&turbo_assembler_);
+
   // allocate forward stub
   auto jump_near_next_insn_addr = from + 6;
   addr_t forward_stub = allocate_indirect_stub(jump_near_next_insn_addr);
-  if (forward_stub == 0)
-    return nullptr;
-
-  *(addr_t *)forward_stub = to;
-
-  CodeGen codegen(&turbo_assembler_);
-  codegen.JmpNearIndirect((addr_t)forward_stub);
+  if (forward_stub != 0) {
+    *(addr_t *)forward_stub = to;
+    codegen.JmpNearIndirect((addr_t)forward_stub);
+  } else {
+    // No free page within +-2GB of the target: embed the destination after the jump instead,
+    // jmp *(rip + 0); .quad to (14 bytes)
+    codegen.JmpNearIndirect(from + 6);
+    turbo_assembler_.code_buffer()->Emit<int64_t>(to);
+  }
 
   auto tramp_buffer = turbo_assembler_.code_buffer();
   auto tramp_block = tramp_buffer->dup();
